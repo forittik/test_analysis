@@ -14,20 +14,20 @@ st.title(f"Performance Analysis - {df['student_name'].iloc[0]}")
 
 # Create subject-wise data with handling for NaN values
 physics_data = pd.DataFrame({
-    'chapter': df['physics_chapters'].unique(),
-    'marks': df['Marks_in_physics'].fillna(0).astype(int),  # Fill NaN with 0 and convert to int
+    'chapter': df['physics_chapters'].dropna().unique(),
+    'marks': df.groupby('physics_chapters')['Marks_in_physics'].sum().reindex(df['physics_chapters'].dropna().unique(), fill_value=0).astype(int),
     'max_marks': 4
 })
 
 chemistry_data = pd.DataFrame({
-    'chapter': df['chemistry_chapters'].unique(),
-    'marks': df['Marks_in_chemistry'].fillna(0).astype(int),  # Fill NaN with 0 and convert to int
+    'chapter': df['chemistry_chapters'].dropna().unique(),
+    'marks': df.groupby('chemistry_chapters')['Marks_in_chemistry'].sum().reindex(df['chemistry_chapters'].dropna().unique(), fill_value=0).astype(int),
     'max_marks': 4
 })
 
 math_data = pd.DataFrame({
-    'chapter': df['mathematics_chapters'].unique(),
-    'marks': df['Marks_in_mathematics'].fillna(0).astype(int),  # Fill NaN with 0 and convert to int
+    'chapter': df['mathematics_chapters'].dropna().unique(),
+    'marks': df.groupby('mathematics_chapters')['Marks_in_mathematics'].sum().reindex(df['mathematics_chapters'].dropna().unique(), fill_value=0).astype(int),
     'max_marks': 4
 })
 
