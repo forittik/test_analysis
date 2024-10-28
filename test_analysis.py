@@ -152,6 +152,6 @@ with col8:
 # Display Detailed Analysis
 st.subheader("Detailed Question Analysis")
 with st.expander("Show Question-wise Analysis"):
-    st.dataframe(df[['physics_chapters', 'Questions_from_physics', 'Marks_in_physics']], use_container_width=True)
-    st.dataframe(df[['chemistry_chapters', 'Questions_from_chemistry', 'Marks_in_chemistry']], use_container_width=True)
-    st.dataframe(df[['mathematics_chapters', 'Questions_from_mathematics', 'Marks_in_mathematics']], use_container_width=True)
+    st.dataframe(df[['physics_chapters', 'Questions_from_that_physics_chapter', 'Marks_in_physics']], use_container_width=True)
+    st.dataframe(df[['chemistry_chapters', 'Questions_from_that_chemistry_chapter', 'Marks_in_chemistry']], use_container_width=True)
+    st.dataframe(df[['mathematics_chapters', 'Questions_from_that_mathematics_chapter', 'Marks_in_mathematics']], use_container_width=True)
