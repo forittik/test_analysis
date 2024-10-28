@@ -2,38 +2,54 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import numpy as np
 
 # Set page configuration
 st.set_page_config(page_title="Student Performance Dashboard", layout="wide")
 
+# Function to process the raw data
+def process_data(data):
+    # Convert the data into a DataFrame
+    df = pd.DataFrame([data.split() for data in data.strip().split('\n')])
+    # Set the column names from the first row
+    df.columns = ['student_name', 'physics_chapters', 'Questions_from_physics', 'Question', 
+                 'Option1', 'Option2', 'Option3', 'Option4', 'Correct_Answer', 'Marks_in_physics',
+                 'chemistry_chapters', 'Questions_from_chemistry', 'Marks_in_chemistry',
+                 'mathematics_chapters', 'Questions_from_mathematics', 'Marks_in_mathematics',
+                 'Strength_in_physics', 'Strength_in_chemistry', 'Strength_in_mathematics']
+    return df
+
+# Sample data input - you can replace this with file upload or database connection
+data = """student_name physics_chapters Questions_from_that_physics_chapter Question Option1 Option2 Option3 Option4 Correct_Answer Marks_in_physics chemistry_chapters Questions_from_that_chemistry_chapter Marks_in_chemistry mathematics_chapters Questions_from_that_mathematics_chapter Marks_in_mathematics Strength_in_physics Strength_in_chemistry Strength_in_mathematics
+Student_A Kinematics Projectile_motion In_projectile_motion_the_horizontal_range_is_maximum_when_the_angle_of_projection_is 30 45 60 90 45 4 Atomic_Structure Bohr's_model 4 Quadratic_Equations Roots_of_quadratic 3 yes yes yes
+Student_A Laws_of_Motion Newton's_laws Newton's_second_law_of_motion_states_that_force_is_equal_to Mass_times_acceleration Mass_times_velocity Acceleration_divided_by_mass Velocity_divided_by_time Mass_times_acceleration 3 Chemical_Bonding Molecular_orbital_theory 2 Matrices Matrix_operations 2 yes no no
+Student_A Work_Energy_Power Work_done_by_forces Work_done_by_a_constant_force_is_calculated_as Force_x_distance_x_sin Force_x_distance_x_cos Force_x_displacement_x_sin Force_x_displacement_x_cos Force_x_displacement_x_cos 2 Thermodynamics First_law_of_thermodynamics 3 Determinants Properties_of_determinants 4 no yes yes
+Student_A Gravitation Gravitational_force Gravitational_force_between_two_objects_is_inversely_proportional_to_the Distance_squared Distance Sum_of_masses Square_of_sum_of_masses Distance_squared 4 Equilibrium Le_Chatelier's_principle 4 Probability Bayes_theorem 1 yes yes no
+Student_A Oscillations Simple_harmonic_motion The_period_of_simple_harmonic_motion_is_given_by 2pi_sqrt_m_k pi_sqrt_m_k 2pi_sqrt_k_m pi_sqrt_k_m 2pi_sqrt_m_k 1 Redox_Reactions Oxidation_numbers 1 Trigonometry Sine_and_cosine_rules 4 no no yes"""
+
+# Process the data
+df = process_data(data)
+
 # Title
-st.title("Student A - Performance Analysis")
+st.title(f"Performance Analysis - {df['student_name'].iloc[0]}")
 
-# Create DataFrames for each subject
-physics_data = pd.DataFrame([
-    {"chapter": "Kinematics", "marks": 4, "max_marks": 4},
-    {"chapter": "Laws of Motion", "marks": 3, "max_marks": 4},
-    {"chapter": "Work, Energy and Power", "marks": 2, "max_marks": 4},
-    {"chapter": "Gravitation", "marks": 4, "max_marks": 4},
-    {"chapter": "Oscillations", "marks": 1, "max_marks": 4}
-])
+# Create subject-wise data
+physics_data = pd.DataFrame({
+    'chapter': df['physics_chapters'].unique(),
+    'marks': df['Marks_in_physics'].astype(int).values,
+    'max_marks': 4
+})
 
-chemistry_data = pd.DataFrame([
-    {"chapter": "Atomic Structure", "marks": 4, "max_marks": 4},
-    {"chapter": "Chemical Bonding", "marks": 2, "max_marks": 4},
-    {"chapter": "Thermodynamics", "marks": 3, "max_marks": 4},
-    {"chapter": "Equilibrium", "marks": 4, "max_marks": 4},
-    {"chapter": "Redox Reactions", "marks": 1, "max_marks": 4}
-])
+chemistry_data = pd.DataFrame({
+    'chapter': df['chemistry_chapters'].unique(),
+    'marks': df['Marks_in_chemistry'].astype(int).values,
+    'max_marks': 4
+})
 
-math_data = pd.DataFrame([
-    {"chapter": "Quadratic Equations", "marks": 3, "max_marks": 4},
-    {"chapter": "Matrices", "marks": 2, "max_marks": 4},
-    {"chapter": "Determinants", "marks": 4, "max_marks": 4},
-    {"chapter": "Probability", "marks": 1, "max_marks": 4},
-    {"chapter": "Trigonometry", "marks": 4, "max_marks": 4}
-])
+math_data = pd.DataFrame({
+    'chapter': df['mathematics_chapters'].unique(),
+    'marks': df['Marks_in_mathematics'].astype(int).values,
+    'max_marks': 4
+})
 
 # Calculate total scores
 total_scores = pd.DataFrame([
@@ -41,8 +57,6 @@ total_scores = pd.DataFrame([
     {"subject": "Chemistry", "obtained": chemistry_data["marks"].sum(), "total": len(chemistry_data) * 4},
     {"subject": "Mathematics", "obtained": math_data["marks"].sum(), "total": len(math_data) * 4}
 ])
-
-# Calculate percentages
 total_scores["percentage"] = (total_scores["obtained"] / total_scores["total"]) * 100
 
 # Create layout with columns
@@ -120,26 +134,44 @@ with col5:
 st.subheader("Summary Statistics")
 col6, col7, col8 = st.columns(3)
 
+# Add strength indicators
+def get_strength_status(subject):
+    strength_column = f'Strength_in_{subject.lower()}'
+    return "Strong" if df[strength_column].iloc[0] == 'yes' else "Needs Improvement"
+
 # Physics Summary
 with col6:
+    physics_score = physics_data['marks'].sum()
+    physics_total = len(physics_data) * 4
     st.metric(
-        label="Physics Score",
-        value=f"{physics_data['marks'].sum()}/{len(physics_data) * 4}",
-        delta=f"{(physics_data['marks'].sum() / (len(physics_data) * 4) * 100):.1f}%"
+        label=f"Physics Score (Strength: {get_strength_status('physics')})",
+        value=f"{physics_score}/{physics_total}",
+        delta=f"{(physics_score/physics_total * 100):.1f}%"
     )
 
 # Chemistry Summary
 with col7:
+    chemistry_score = chemistry_data['marks'].sum()
+    chemistry_total = len(chemistry_data) * 4
     st.metric(
-        label="Chemistry Score",
-        value=f"{chemistry_data['marks'].sum()}/{len(chemistry_data) * 4}",
-        delta=f"{(chemistry_data['marks'].sum() / (len(chemistry_data) * 4) * 100):.1f}%"
+        label=f"Chemistry Score (Strength: {get_strength_status('chemistry')})",
+        value=f"{chemistry_score}/{chemistry_total}",
+        delta=f"{(chemistry_score/chemistry_total * 100):.1f}%"
     )
 
 # Mathematics Summary
 with col8:
+    math_score = math_data['marks'].sum()
+    math_total = len(math_data) * 4
     st.metric(
-        label="Mathematics Score",
-        value=f"{math_data['marks'].sum()}/{len(math_data) * 4}",
-        delta=f"{(math_data['marks'].sum() / (len(math_data) * 4) * 100):.1f}%"
+        label=f"Mathematics Score (Strength: {get_strength_status('mathematics')})",
+        value=f"{math_score}/{math_total}",
+        delta=f"{(math_score/math_total * 100):.1f}%"
     )
+
+# Display Detailed Analysis
+st.subheader("Detailed Question Analysis")
+with st.expander("Show Question-wise Analysis"):
+    st.dataframe(df[['physics_chapters', 'Questions_from_physics', 'Marks_in_physics']], use_container_width=True)
+    st.dataframe(df[['chemistry_chapters', 'Questions_from_chemistry', 'Marks_in_chemistry']], use_container_width=True)
+    st.dataframe(df[['mathematics_chapters', 'Questions_from_mathematics', 'Marks_in_mathematics']], use_container_width=True)
