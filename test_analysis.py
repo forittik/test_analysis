@@ -1,115 +1,145 @@
 import streamlit as st
 import pandas as pd
-from langchain_groq import ChatGroq
-from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from dotenv import load_dotenv
-import os
+import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
 
-load_dotenv()
-groq_api_key = os.environ.get("GROQ_API_KEY")
+# Set page configuration
+st.set_page_config(page_title="Student Performance Dashboard", layout="wide")
 
-llm = ChatGroq(temperature=0, model_name="llama3-70b-8192", api_key=groq_api_key)
+# Title
+st.title("Student A - Performance Analysis")
 
-# Updated detailed prompt structure for single student analysis
-summary_prompt_single = PromptTemplate.from_template("""
-I run an EdTech business focused on preparing students for the Joint Entrance Examination (JEE).
-Below is the structured data for a student's performance, broken down by columns:
+# Create DataFrames for each subject
+physics_data = pd.DataFrame([
+    {"chapter": "Kinematics", "marks": 4, "max_marks": 4},
+    {"chapter": "Laws of Motion", "marks": 3, "max_marks": 4},
+    {"chapter": "Work, Energy and Power", "marks": 2, "max_marks": 4},
+    {"chapter": "Gravitation", "marks": 4, "max_marks": 4},
+    {"chapter": "Oscillations", "marks": 1, "max_marks": 4}
+])
 
-1. **Student Name**: Identifier for each student being analyzed.
-2. **Physics Section**:
-   - **Physics Chapters**: Specific chapters from which questions are derived (e.g., "Kinematics" or "Laws of Motion").
-   - **Questions from that Physics Chapter**: Topic within the chapter (e.g., "Projectile Motion") specifying the focus of each question.
-   - **Question**: The actual MCQ presented to the student.
-   - **Option 1 to Option 4**: Four answer options provided for each question.
-   - **Correct Answer**: The correct option for each question.
-   - **Marks in Physics**: Score achieved on each Physics question (out of a maximum of 4).
-3. **Chemistry Section**:
-   - **Chemistry Chapters**: Chapters for Chemistry questions (e.g., "Atomic Structure" or "Thermodynamics").
-   - **Questions from that Chemistry Chapter**: Topic within each chapter, such as "Bohr’s Model" or "Le Chatelier’s Principle".
-   - **Question, Options 1–4, Correct Answer**: Structure as in Physics, with a unique MCQ per topic and correct option.
-   - **Marks in Chemistry**: Score for each Chemistry question, with a maximum of 4.
-4. **Mathematics Section**:
-   - **Mathematics Chapters**: Chapters for Mathematics questions (e.g., "Quadratic Equations" or "Probability").
-   - **Questions from that Mathematics Chapter**: Topic within each chapter, like "Roots of Quadratic" or "Bayes' Theorem".
-   - **Question, Options 1–4, Correct Answer**: Similar format as Physics and Chemistry, with four options and correct answer.
-   - **Marks in Mathematics**: Score achieved on each Mathematics question (maximum of 4).
-5. **Strength Indicators**:
-   - **Strength in Physics**: Indicates whether the student is strong in Physics ("yes" or "no").
-   - **Strength in Chemistry**: Indicates strength in Chemistry ("yes" or "no").
-   - **Strength in Mathematics**: Indicates strength in Mathematics ("yes" or "no").
+chemistry_data = pd.DataFrame([
+    {"chapter": "Atomic Structure", "marks": 4, "max_marks": 4},
+    {"chapter": "Chemical Bonding", "marks": 2, "max_marks": 4},
+    {"chapter": "Thermodynamics", "marks": 3, "max_marks": 4},
+    {"chapter": "Equilibrium", "marks": 4, "max_marks": 4},
+    {"chapter": "Redox Reactions", "marks": 1, "max_marks": 4}
+])
 
-{context}
+math_data = pd.DataFrame([
+    {"chapter": "Quadratic Equations", "marks": 3, "max_marks": 4},
+    {"chapter": "Matrices", "marks": 2, "max_marks": 4},
+    {"chapter": "Determinants", "marks": 4, "max_marks": 4},
+    {"chapter": "Probability", "marks": 1, "max_marks": 4},
+    {"chapter": "Trigonometry", "marks": 4, "max_marks": 4}
+])
 
-Based on this data, provide a detailed summary of the student's strengths, opportunities, and challenges.
-Offer specific, actionable suggestions for improvement.
-""")
+# Calculate total scores
+total_scores = pd.DataFrame([
+    {"subject": "Physics", "obtained": physics_data["marks"].sum(), "total": len(physics_data) * 4},
+    {"subject": "Chemistry", "obtained": chemistry_data["marks"].sum(), "total": len(chemistry_data) * 4},
+    {"subject": "Mathematics", "obtained": math_data["marks"].sum(), "total": len(math_data) * 4}
+])
 
-# Updated prompt for multiple students analysis
-summary_prompt_multiple = PromptTemplate.from_template("""
-I run an EdTech business focused on preparing students for the Joint Entrance Examination (JEE).
-The following dataset provides detailed information on multiple students' performance, structured as follows:
+# Calculate percentages
+total_scores["percentage"] = (total_scores["obtained"] / total_scores["total"]) * 100
 
-1. **Student Name**: Identifier for each student being analyzed.
-2. **Physics Section**: 
-   - **Physics Chapters**, **Questions from that Physics Chapter**, **Question**, **Options 1–4**, **Correct Answer**, **Marks in Physics**
-3. **Chemistry Section**:
-   - **Chemistry Chapters**, **Questions from that Chemistry Chapter**, **Question**, **Options 1–4**, **Correct Answer**, **Marks in Chemistry**
-4. **Mathematics Section**:
-   - **Mathematics Chapters**, **Questions from that Mathematics Chapter**, **Question**, **Options 1–4**, **Correct Answer**, **Marks in Mathematics**
-5. **Strength Indicators**:
-   - **Strength in Physics**, **Strength in Chemistry**, **Strength in Mathematics**
+# Create layout with columns
+col1, col2 = st.columns(2)
 
-{context}
+# Subject-wise Performance Bar Chart
+with col1:
+    st.subheader("Subject-wise Scores")
+    fig_scores = go.Figure(data=[
+        go.Bar(name='Marks Obtained', x=total_scores['subject'], y=total_scores['obtained'],
+               marker_color='#0088FE'),
+        go.Bar(name='Total Marks', x=total_scores['subject'], y=total_scores['total'],
+               marker_color='#00C49F')
+    ])
+    fig_scores.update_layout(barmode='group', height=400)
+    st.plotly_chart(fig_scores, use_container_width=True)
 
-For each student, generate a detailed summary of their strengths, opportunities, and challenges.
-Include comparative insights for students, identifying where they can learn from each other's strengths and work on similar challenges. Provide actionable improvement suggestions for each student.
-""")
+# Radar Chart for Performance Distribution
+with col2:
+    st.subheader("Performance Distribution (%)")
+    fig_radar = go.Figure()
+    fig_radar.add_trace(go.Scatterpolar(
+        r=total_scores['percentage'],
+        theta=total_scores['subject'],
+        fill='toself',
+        name='Score Percentage'
+    ))
+    fig_radar.update_layout(
+        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+        showlegend=False,
+        height=400
+    )
+    st.plotly_chart(fig_radar, use_container_width=True)
 
-@st.cache_data
-def load_data():
-    file_path = 'https://raw.githubusercontent.com/forittik/test_analysis/refs/heads/main/jee_student_data_75_questions.csv'
-    df = pd.read_csv(file_path, header=0, encoding='ISO-8859-1')
-    return df
+# Create three columns for subject-wise chapter performance
+col3, col4, col5 = st.columns(3)
 
-def get_student_data(name, df):
-    student_data = df[df['student_name'] == name]
-    if student_data.empty:
-        return None
-    return student_data
+# Physics Chapter Performance
+with col3:
+    st.subheader("Physics Chapter Performance")
+    fig_physics = px.bar(physics_data, x='chapter', y='marks',
+                        labels={'marks': 'Marks', 'chapter': 'Chapter'},
+                        color_discrete_sequence=['#0088FE'])
+    fig_physics.update_layout(
+        xaxis_tickangle=-45,
+        height=400
+    )
+    st.plotly_chart(fig_physics, use_container_width=True)
 
-def generate_single_student_summary(student_data):
-    context = student_data.to_string(index=False)
-    summary_chain = summary_prompt_single | llm | StrOutputParser()
-    summary = summary_chain.invoke({"context": context})
-    return summary
+# Chemistry Chapter Performance
+with col4:
+    st.subheader("Chemistry Chapter Performance")
+    fig_chemistry = px.bar(chemistry_data, x='chapter', y='marks',
+                          labels={'marks': 'Marks', 'chapter': 'Chapter'},
+                          color_discrete_sequence=['#00C49F'])
+    fig_chemistry.update_layout(
+        xaxis_tickangle=-45,
+        height=400
+    )
+    st.plotly_chart(fig_chemistry, use_container_width=True)
 
-def generate_multiple_students_summary(student_data):
-    context = student_data.to_string(index=False)
-    summary_chain = summary_prompt_multiple | llm | StrOutputParser()
-    summary = summary_chain.invoke({"context": context})
-    return summary
+# Mathematics Chapter Performance
+with col5:
+    st.subheader("Mathematics Chapter Performance")
+    fig_math = px.bar(math_data, x='chapter', y='marks',
+                      labels={'marks': 'Marks', 'chapter': 'Chapter'},
+                      color_discrete_sequence=['#FFBB28'])
+    fig_math.update_layout(
+        xaxis_tickangle=-45,
+        height=400
+    )
+    st.plotly_chart(fig_math, use_container_width=True)
 
-def process_students(names, df):
-    if isinstance(names, str):
-        student_data = get_student_data(names, df)
-        if student_data is None:
-            return f"No data found for student: {names}"
-        return generate_single_student_summary(student_data)
-    elif isinstance(names, list):
-        combined_data = pd.concat([get_student_data(name, df) for name in names if get_student_data(name, df) is not None])
-        if combined_data.empty:
-            return "No data found for the given students."
-        return generate_multiple_students_summary(combined_data)
+# Add summary statistics
+st.subheader("Summary Statistics")
+col6, col7, col8 = st.columns(3)
 
-st.title("Test Analysis Dashboard")
-df = load_data()
-student_names = df['student_name'].tolist()
-selected_names = st.multiselect("Select student(s) to analyze:", student_names)
+# Physics Summary
+with col6:
+    st.metric(
+        label="Physics Score",
+        value=f"{physics_data['marks'].sum()}/{len(physics_data) * 4}",
+        delta=f"{(physics_data['marks'].sum() / (len(physics_data) * 4) * 100):.1f}%"
+    )
 
-if st.button("Analyze student data"):
-    if selected_names:
-        summary = process_students(selected_names, df)
-        st.write(summary)
-    else:
-        st.warning("Please select at least one student.")
+# Chemistry Summary
+with col7:
+    st.metric(
+        label="Chemistry Score",
+        value=f"{chemistry_data['marks'].sum()}/{len(chemistry_data) * 4}",
+        delta=f"{(chemistry_data['marks'].sum() / (len(chemistry_data) * 4) * 100):.1f}%"
+    )
+
+# Mathematics Summary
+with col8:
+    st.metric(
+        label="Mathematics Score",
+        value=f"{math_data['marks'].sum()}/{len(math_data) * 4}",
+        delta=f"{(math_data['marks'].sum() / (len(math_data) * 4) * 100):.1f}%"
+    )
