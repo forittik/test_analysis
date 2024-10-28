@@ -31,13 +31,10 @@ math_data = pd.DataFrame({
     'max_marks': 4
 })
 
-# Calculate total scores
-total_scores = pd.DataFrame([
-    {"subject": "Physics", "obtained": physics_data["marks"].sum(), "total": len(physics_data) * 4},
-    {"subject": "Chemistry", "obtained": chemistry_data["marks"].sum(), "total": len(chemistry_data) * 4},
-    {"subject": "Mathematics", "obtained": math_data["marks"].sum(), "total": len(math_data) * 4}
-])
-total_scores["percentage"] = (total_scores["obtained"] / total_scores["total"]) * 100
+# Update total marks for each subject
+total_questions = 75
+marks_per_question = 4
+total_marks = total_questions * marks_per_question
 
 # Create layout with columns
 col1, col2 = st.columns(2)
@@ -46,9 +43,11 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("Subject-wise Scores")
     fig_scores = go.Figure(data=[
-        go.Bar(name='Marks Obtained', x=total_scores['subject'], y=total_scores['obtained'],
+        go.Bar(name='Marks Obtained', x=['Physics', 'Chemistry', 'Mathematics'], 
+               y=[df['Marks_in_physics'].sum(), df['Marks_in_chemistry'].sum(), df['Marks_in_mathematics'].sum()],
                marker_color='#0088FE'),
-        go.Bar(name='Total Marks', x=total_scores['subject'], y=total_scores['total'],
+        go.Bar(name='Total Marks', x=['Physics', 'Chemistry', 'Mathematics'], 
+               y=[total_marks, total_marks, total_marks],
                marker_color='#00C49F')
     ])
     fig_scores.update_layout(barmode='group', height=400)
@@ -57,10 +56,15 @@ with col1:
 # Radar Chart for Performance Distribution
 with col2:
     st.subheader("Performance Distribution (%)")
+    percentage_scores = [
+        (df['Marks_in_physics'].sum() / total_marks) * 100,
+        (df['Marks_in_chemistry'].sum() / total_marks) * 100,
+        (df['Marks_in_mathematics'].sum() / total_marks) * 100
+    ]
     fig_radar = go.Figure()
     fig_radar.add_trace(go.Scatterpolar(
-        r=total_scores['percentage'],
-        theta=total_scores['subject'],
+        r=percentage_scores,
+        theta=['Physics', 'Chemistry', 'Mathematics'],
         fill='toself',
         name='Score Percentage'
     ))
@@ -110,7 +114,7 @@ with col5:
     )
     st.plotly_chart(fig_math, use_container_width=True)
 
-# Add summary statistics
+# Summary Statistics
 st.subheader("Summary Statistics")
 col6, col7, col8 = st.columns(3)
 
@@ -121,32 +125,29 @@ def get_strength_status(subject):
 
 # Physics Summary
 with col6:
-    physics_score = physics_data['marks'].sum()
-    physics_total = len(physics_data) * 4
+    physics_score = df['Marks_in_physics'].sum()
     st.metric(
         label=f"Physics Score (Strength: {get_strength_status('physics')})",
-        value=f"{physics_score}/{physics_total}",
-        delta=f"{(physics_score/physics_total * 100):.1f}%"
+        value=f"{physics_score}/{total_marks}",
+        delta=f"{(physics_score / total_marks * 100):.1f}%"
     )
 
 # Chemistry Summary
 with col7:
-    chemistry_score = chemistry_data['marks'].sum()
-    chemistry_total = len(chemistry_data) * 4
+    chemistry_score = df['Marks_in_chemistry'].sum()
     st.metric(
         label=f"Chemistry Score (Strength: {get_strength_status('chemistry')})",
-        value=f"{chemistry_score}/{chemistry_total}",
-        delta=f"{(chemistry_score/chemistry_total * 100):.1f}%"
+        value=f"{chemistry_score}/{total_marks}",
+        delta=f"{(chemistry_score / total_marks * 100):.1f}%"
     )
 
 # Mathematics Summary
 with col8:
-    math_score = math_data['marks'].sum()
-    math_total = len(math_data) * 4
+    math_score = df['Marks_in_mathematics'].sum()
     st.metric(
         label=f"Mathematics Score (Strength: {get_strength_status('mathematics')})",
-        value=f"{math_score}/{math_total}",
-        delta=f"{(math_score/math_total * 100):.1f}%"
+        value=f"{math_score}/{total_marks}",
+        delta=f"{(math_score / total_marks * 100):.1f}%"
     )
 
 # Display Detailed Analysis
