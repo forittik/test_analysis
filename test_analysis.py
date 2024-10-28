@@ -6,29 +6,28 @@ import plotly.graph_objects as go
 # Set page configuration
 st.set_page_config(page_title="Student Performance Dashboard", layout="wide")
 
-
 # Process the data
 df = pd.read_csv("https://raw.githubusercontent.com/forittik/test_analysis/refs/heads/main/jee_student_data_75_questions.csv")
 
 # Title
 st.title(f"Performance Analysis - {df['student_name'].iloc[0]}")
 
-# Create subject-wise data
+# Create subject-wise data with handling for NaN values
 physics_data = pd.DataFrame({
     'chapter': df['physics_chapters'].unique(),
-    'marks': df['Marks_in_physics'].astype(int).values,
+    'marks': df['Marks_in_physics'].fillna(0).astype(int),  # Fill NaN with 0 and convert to int
     'max_marks': 4
 })
 
 chemistry_data = pd.DataFrame({
     'chapter': df['chemistry_chapters'].unique(),
-    'marks': df['Marks_in_chemistry'].astype(int).values,
+    'marks': df['Marks_in_chemistry'].fillna(0).astype(int),  # Fill NaN with 0 and convert to int
     'max_marks': 4
 })
 
 math_data = pd.DataFrame({
     'chapter': df['mathematics_chapters'].unique(),
-    'marks': df['Marks_in_mathematics'].astype(int).values,
+    'marks': df['Marks_in_mathematics'].fillna(0).astype(int),  # Fill NaN with 0 and convert to int
     'max_marks': 4
 })
 
@@ -79,8 +78,8 @@ col3, col4, col5 = st.columns(3)
 with col3:
     st.subheader("Physics Chapter Performance")
     fig_physics = px.bar(physics_data, x='chapter', y='marks',
-                        labels={'marks': 'Marks', 'chapter': 'Chapter'},
-                        color_discrete_sequence=['#0088FE'])
+                          labels={'marks': 'Marks', 'chapter': 'Chapter'},
+                          color_discrete_sequence=['#0088FE'])
     fig_physics.update_layout(
         xaxis_tickangle=-45,
         height=400
@@ -91,8 +90,8 @@ with col3:
 with col4:
     st.subheader("Chemistry Chapter Performance")
     fig_chemistry = px.bar(chemistry_data, x='chapter', y='marks',
-                          labels={'marks': 'Marks', 'chapter': 'Chapter'},
-                          color_discrete_sequence=['#00C49F'])
+                            labels={'marks': 'Marks', 'chapter': 'Chapter'},
+                            color_discrete_sequence=['#00C49F'])
     fig_chemistry.update_layout(
         xaxis_tickangle=-45,
         height=400
@@ -103,8 +102,8 @@ with col4:
 with col5:
     st.subheader("Mathematics Chapter Performance")
     fig_math = px.bar(math_data, x='chapter', y='marks',
-                      labels={'marks': 'Marks', 'chapter': 'Chapter'},
-                      color_discrete_sequence=['#FFBB28'])
+                       labels={'marks': 'Marks', 'chapter': 'Chapter'},
+                       color_discrete_sequence=['#FFBB28'])
     fig_math.update_layout(
         xaxis_tickangle=-45,
         height=400
