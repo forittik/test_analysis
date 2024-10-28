@@ -73,7 +73,7 @@ def load_data():
     return df
 
 def get_student_data(name, df):
-    student_data = df[df['user_id'] == name]
+    student_data = df[df['student_name'] == name]
     if student_data.empty:
         return None
     return student_data
@@ -104,7 +104,7 @@ def process_students(names, df):
 
 st.title("Test Analysis Dashboard")
 df = load_data()
-student_names = df['user_id'].tolist()
+student_names = df['student_name'].tolist()
 selected_names = st.multiselect("Select student(s) to analyze:", student_names)
 
 if st.button("Analyze student data"):
