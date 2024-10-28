@@ -68,7 +68,7 @@ Include comparative insights for students, identifying where they can learn from
 
 @st.cache_data
 def load_data():
-    file_path = 'https://raw.githubusercontent.com/forittik/updated_soca_tool/refs/heads/main/Dummy_questions.csv'
+    file_path = 'https://raw.githubusercontent.com/forittik/test_analysis/refs/heads/main/jee_student_data_75_questions.csv'
     df = pd.read_csv(file_path, header=0, encoding='ISO-8859-1')
     return df
 
@@ -102,7 +102,7 @@ def process_students(names, df):
             return "No data found for the given students."
         return generate_multiple_students_summary(combined_data)
 
-st.title("B2B Dashboard")
+st.title("Test Analysis Dashboard")
 df = load_data()
 student_names = df['user_id'].tolist()
 selected_names = st.multiselect("Select student(s) to analyze:", student_names)
