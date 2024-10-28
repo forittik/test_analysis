@@ -1,4 +1,4 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -211,8 +211,7 @@ with col6:
     st.metric(
         label=f"Physics Score (Strength: {get_strength_status('Physics')})",
         value=physics_score,
-        delta=f"{physics_score / total_marks * 100:.2f}%",
-        help=f"Max Marks: {total_marks} (75 questions * 4 marks each)"
+        delta=f"{physics_score / total_marks * 100:.2f}%"
     )
 
 # Chemistry Summary
@@ -221,8 +220,7 @@ with col7:
     st.metric(
         label=f"Chemistry Score (Strength: {get_strength_status('Chemistry')})",
         value=chemistry_score,
-        delta=f"{chemistry_score / total_marks * 100:.2f}%",
-        help=f"Max Marks: {total_marks} (75 questions * 4 marks each)"
+        delta=f"{chemistry_score / total_marks * 100:.2f}%"
     )
 
 # Mathematics Summary
@@ -231,14 +229,13 @@ with col8:
     st.metric(
         label=f"Mathematics Score (Strength: {get_strength_status('Mathematics')})",
         value=math_score,
-        delta=f"{math_score / total_marks * 100:.2f}%",
-        help=f"Max Marks: {total_marks} (75 questions * 4 marks each)"
+        delta=f"{math_score / total_marks * 100:.2f}%"
     )
 
-# Additional insights
-st.subheader("Additional Insights")
-detailed_summaries = process_student_data_in_batches(df)
-final_summary = generate_final_summary(detailed_summaries)
-st.write(final_summary)
+# Button to Analyze Performance with Groq
+if st.button("Analyze Question Performance with Groq"):
+    with st.spinner("Generating performance analysis..."):
+        detailed_summaries = process_student_data_in_batches(df)
+        final_summary = generate_final_summary(detailed_summaries)
+        st.write(final_summary)
 
-# End of Streamlit app
